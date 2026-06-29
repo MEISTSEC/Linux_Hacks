@@ -98,3 +98,14 @@ yay.create_autocmd("AURPreInstall", {
     end
   end,
 })
+
+-- Test hook: when loaded by the suite (with _G.__YAY_TEST set) expose the
+-- file-local helpers so they can be unit-tested. No effect under yay.
+if rawget(_G, "__YAY_TEST") then
+  return {
+    scan = scan,
+    is_allowed = is_allowed,
+    glob_to_pat = glob_to_pat,
+    load_allow = load_allow,
+  }
+end

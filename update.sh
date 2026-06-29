@@ -1,13 +1,16 @@
 #!/bin/bash
 set -euo pipefail
 
-# Re-execute as root if not already
-if [[ $EUID -ne 0 ]]; then
+# Re-execute as root if not already. Skipped when the script is sourced (e.g.
+# the test suite sources it to unit-test individual functions) or when
+# UPDATE_SH_TEST is set, so neither path triggers sudo.
+if [[ "${BASH_SOURCE[0]}" == "${0}" && $EUID -ne 0 && -z "${UPDATE_SH_TEST:-}" ]]; then
     exec sudo "$0" "$@"
 fi
 
-# Store original user's home directory for user-specific paths
-USER_HOME="/home/$SUDO_USER"
+# Store original user's home directory for user-specific paths. Overridable so
+# tests can point every user-path at a temporary HOME.
+USER_HOME="${USER_HOME:-/home/${SUDO_USER:-$USER}}"
 
 # Action flags (all false by default)
 DO_CLEAN=false
@@ -878,6 +881,12 @@ main() {
 # =============================================================================
 # Argument Parsing
 # =============================================================================
+
+# When sourced (e.g. by the test suite) stop here: only the function definitions
+# and default variables above are loaded -- no argument parsing, no main() run.
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+    return 0
+fi
 
 # Pre-scan for config-control flags so the config is loaded (and possibly
 # redirected) BEFORE the main parse, while CLI action flags still win over it.
