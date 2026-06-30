@@ -48,6 +48,9 @@ covered by `unit/test_output.bats`. Because tests capture output with no TTY,
 color is automatically disabled; assert on the plain text (and force
 `UPDATE_NO_COLOR=1` if you ever need to be explicit).
 
+`unit/test_misc.bats` also covers `rebuild_packages()` backend dispatch (yay
+`-S --rebuild` with review, pamac `build`, and the pacman refusal).
+
 ## How it works
 
 ### bats (bash)
