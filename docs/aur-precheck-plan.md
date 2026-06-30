@@ -1,9 +1,10 @@
 # Plan: RPC-backed install-time AUR warnings
 
-**Status:** COMPLETE 2026-06-30 (M0–M5). Implemented as a two-hook design;
+**Status:** COMPLETE & DEPLOYED 2026-06-30 (M0–M5). Two-hook design;
 `lib/aur-common.sh` + `aur-precheck.sh` + the `AURPreInstall`/`UpgradeSelect`
-hooks in `yay-init.lua`, with bats + lua tests. Live deploy of
-`~/.config/yay/init.lua` is the only manual step (outside the repo tree).
+hooks in `yay-init.lua`, with bats + lua tests. The live `~/.config/yay/init.lua`
+was deployed and verified to match the repo copy; the hooks are active. Future
+changes redeploy via `cp yay-init.lua ~/.config/yay/init.lua`.
 
 ## M0 results (2026-06-30) — spike findings
 
