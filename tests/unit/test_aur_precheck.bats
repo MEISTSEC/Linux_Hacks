@@ -91,3 +91,9 @@ teardown() { [[ -d "$TEST_HOME" ]] && rm -rf "$TEST_HOME"; }
     run "$PRECHECK" evil-pkg
     assert_success
 }
+
+@test "AUR_PRECHECK=false disables the network-backed checks" {
+    AUR_PRECHECK=false run "$PRECHECK" evil-pkg
+    assert_success
+    assert_output ""
+}

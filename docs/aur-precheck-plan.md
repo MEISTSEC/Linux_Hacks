@@ -1,6 +1,9 @@
 # Plan: RPC-backed install-time AUR warnings
 
-**Status:** M0 (spike) COMPLETE 2026-06-30; M1–M5 not started.
+**Status:** COMPLETE 2026-06-30 (M0–M5). Implemented as a two-hook design;
+`lib/aur-common.sh` + `aur-precheck.sh` + the `AURPreInstall`/`UpgradeSelect`
+hooks in `yay-init.lua`, with bats + lua tests. Live deploy of
+`~/.config/yay/init.lua` is the only manual step (outside the repo tree).
 
 ## M0 results (2026-06-30) — spike findings
 

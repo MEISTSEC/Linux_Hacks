@@ -28,6 +28,10 @@ if [[ -f "$PRECHECK_CONF" && -O "$PRECHECK_CONF" ]]; then
     source "$PRECHECK_CONF" 2>/dev/null || true
 fi
 
+# Master toggle (default on). AUR_PRECHECK=false disables the network-backed
+# install-time checks; the hook's local PKGBUILD build-logic scan still runs.
+[[ "${AUR_PRECHECK:-true}" == "false" ]] && exit 0
+
 AUR_PRECHECK_MAX_AGE_DAYS="${AUR_PRECHECK_MAX_AGE_DAYS:-365}"
 AUR_IOC_CACHE_TTL="${AUR_IOC_CACHE_TTL:-21600}"   # 6h
 ALLOWLIST_FILE="${YAY_ALLOWLIST_FILE:-$USER_HOME/.config/yay/allowlist.txt}"

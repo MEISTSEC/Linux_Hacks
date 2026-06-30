@@ -26,10 +26,11 @@ the June 2026 **"Atomic Arch"** AUR compromise.
    - [Special report lines](#special-report-lines)
    - [Maintainer-change / re-adoption detection](#maintainer-change--re-adoption-detection)
 7. [AUR scan (`-S`) — malware IOC checks](#aur-scan--s--malware-ioc-checks)
-8. [Background: the Atomic Arch attack](#background-the-atomic-arch-attack)
-9. [Recommended workflows](#recommended-workflows)
-10. [Configuration](#configuration)
-11. [Safety notes & caveats](#safety-notes--caveats)
+8. [Install-time warnings (the yay hooks)](#install-time-warnings-the-yay-hooks)
+9. [Background: the Atomic Arch attack](#background-the-atomic-arch-attack)
+10. [Recommended workflows](#recommended-workflows)
+11. [Configuration](#configuration)
+12. [Safety notes & caveats](#safety-notes--caveats)
 
 ---
 
@@ -395,6 +396,35 @@ the group-4 host checks above.
 
 ---
 
+## Install-time warnings (the yay hooks)
+
+`-A`/`-S` audit packages you've **already installed**. To catch a suspicious
+package **at the moment you install or upgrade it**, `yay-init.lua` registers two
+advisory hooks in yay v13 (Lua 5.1). Both **warn only — they never block**; yay's
+normal clean/diff/edit menus still run. `CRIT` findings print a loud banner via
+`yay.log.error`; lesser ones via `yay.log.warn`.
+
+| Hook | When it fires | What it checks | Network? |
+|------|---------------|----------------|----------|
+| `AURPreInstall` | every AUR install/upgrade, per package | PKGBUILD/`.install` **build-logic** scan (npm/pipe-to-sh/IOC names), then `aur-precheck.sh` → **orphaned / out-of-date / stale / compromised name / malicious maintainer** | local scan = no; precheck = one RPC + cached IOC lists |
+| `UpgradeSelect` | during `yay -Syu`, before the exclude menu | **maintainer change** since last upgrade (the re-adoption tell) — uses the maintainer field yay provides | no |
+
+**`aur-precheck.sh <pkg>`** is the bridge: it does one AUR RPC query plus a
+TTL-cached IOC lookup for a single package and prints `CRIT`/`WARN` lines. It's
+also usable standalone (`./aur-precheck.sh some-aur-pkg`) and shares its logic
+with `update.sh` via `lib/aur-common.sh`. It honors the same `LUA_ALLOWLIST`
+(via `~/.config/yay/allowlist.txt`) and degrades silently offline.
+
+Why two hooks: `AURPreInstall` does not receive the maintainer field, so the
+maintainer-change check lives in `UpgradeSelect` (which does); everything else is
+per-package and lives in `AURPreInstall`. Tune behavior with `AUR_PRECHECK*` in
+the [config](#configuration).
+
+> **Deploy:** the live hook yay reads is `~/.config/yay/init.lua`. After updating
+> the repo's `yay-init.lua`, copy it across: `cp yay-init.lua ~/.config/yay/init.lua`.
+
+---
+
 ## Background: the Atomic Arch attack
 
 On **June 11–12, 2026**, attackers compromised ~1,500 AUR packages by
@@ -479,6 +509,9 @@ built-in defaults with a warning.
 | `EXCLUDE_ALIEN` | list | *(empty)* | Foreign pkgs suppressed from `~/alien-pkgs.txt` and the `-A`/`-S` reports |
 | `KEEP_ORPHANS` | list | *(empty)* | Orphans never offered for removal by `-o` |
 | `LUA_ALLOWLIST` | list | `mailspring` | Pkgs allowlisted in the yay tripwire hook |
+| `AUR_PRECHECK` | bool | `true` | Master switch for the network-backed [install-time checks](#install-time-warnings-the-yay-hooks) |
+| `AUR_PRECHECK_MAX_AGE_DAYS` | int | `365` | Install-time staleness threshold (PKGBUILD older than this → warn) |
+| `AUR_IOC_CACHE_TTL` | int | `21600` | Seconds to cache IOC lists for the install-time check (6h) |
 
 All three list-type exclusions accept **exact names or shell globs**
 (`python-*`, `*-git`). Suppression counts are printed so nothing is hidden
@@ -495,7 +528,9 @@ truth, so don't hand-edit `allowlist.txt`.
 |------|---------|
 | `~/aur-audit.txt` | Full per-package audit report (overwritten each `-A` run) |
 | `~/alien-pkgs.txt` | Foreign-package list saved by `-o` (minus `EXCLUDE_ALIEN`) |
-| `~/.cache/update-aur/maintainers.json` | Maintainer snapshot for re-adoption detection |
+| `~/.cache/update-aur/maintainers.json` | Maintainer snapshot for `-A` re-adoption detection |
+| `~/.cache/update-aur/maintainer_cache` | Maintainer cache for the `UpgradeSelect` hook (install-time) |
+| `~/.cache/update-aur/ioc/` | TTL-cached IOC lists used by `aur-precheck.sh` |
 | `~/.config/yay/allowlist.txt` | Tripwire allowlist, synced from `LUA_ALLOWLIST` |
 
 ---

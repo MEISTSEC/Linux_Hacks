@@ -32,10 +32,15 @@ tests/
     lua_harness.lua    # ~30-line assert/report runner
   stubs/bin/           # mock pacman/curl/sudo/yay/... (PATH-shadow the real tools)
   fixtures/ioc/        # sample malicious accounts/packages/npm lists
-  unit/                # *.bats unit tests for update.sh functions
+  unit/                # *.bats unit tests for update.sh + aur-precheck.sh
   lint/                # bash -n / luac / shellcheck / usage smoke
-  lua/                 # test_yay_init.lua
+  lua/                 # test_yay_init.lua (hook helpers + both hook callbacks)
 ```
+
+`aur-precheck.sh` and the shared `lib/aur-common.sh` are exercised by
+`unit/test_aur_precheck.bats` (reusing the same stubs/fixtures — the `curl` mock
+emulates the AUR RPC and the IOC lists). The lua tests stub the `yay` global to
+capture both hook callbacks and all `yay.log` output.
 
 ## How it works
 

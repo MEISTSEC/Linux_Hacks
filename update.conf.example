@@ -59,6 +59,28 @@
 
 
 # -----------------------------------------------------------------------------
+# 1b. INSTALL-TIME PRE-CHECK (the yay hook + aur-precheck.sh)
+# -----------------------------------------------------------------------------
+# These are read by aur-precheck.sh, which the yay AURPreInstall hook runs when
+# you install/upgrade an AUR package. They warn (never block) on orphaned /
+# out-of-date / stale / compromised packages right at install time. (This config
+# is also sourced by the helper, which runs as your user.)
+
+# AUR_PRECHECK -- master switch for the network-backed install-time checks.
+# Set to false to disable them (the hook's local PKGBUILD build-logic scan and
+# the maintainer-change warning still run, since those need no network).
+#AUR_PRECHECK=true
+
+# AUR_PRECHECK_MAX_AGE_DAYS -- at install time, warn if the package's PKGBUILD
+# was last updated more than this many days ago (a "stale, eyeball it" signal).
+#AUR_PRECHECK_MAX_AGE_DAYS=365
+
+# AUR_IOC_CACHE_TTL -- seconds to cache the fetched IOC lists (so a bulk upgrade
+# doesn't refetch them for every package). Default is 6 hours.
+#AUR_IOC_CACHE_TTL=21600
+
+
+# -----------------------------------------------------------------------------
 # 2. EXCLUSIONS
 # -----------------------------------------------------------------------------
 # All three lists accept EXACT package names and shell GLOBS, e.g.:
