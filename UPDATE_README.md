@@ -17,21 +17,22 @@ the June 2026 **"Atomic Arch"** AUR compromise.
 
 1. [Quick start](#quick-start)
 2. [Requirements](#requirements)
-3. [All options](#all-options)
-4. [Concepts (foreign vs. orphaned, rebuild vs. python rebuild)](#concepts)
-5. [Modifiers](#modifiers)
-6. [The yay updater (default) and why it beats pamac for AUR](#the-yay-updater-default-and-why-it-beats-pamac-for-aur)
-7. [AUR audit (`-A`) — reading the metrics table](#aur-audit--a--reading-the-metrics-table)
+3. [Installation](#installation)
+4. [All options](#all-options)
+5. [Concepts (foreign vs. orphaned, rebuild vs. python rebuild)](#concepts)
+6. [Modifiers](#modifiers)
+7. [The yay updater (default) and why it beats pamac for AUR](#the-yay-updater-default-and-why-it-beats-pamac-for-aur)
+8. [AUR audit (`-A`) — reading the metrics table](#aur-audit--a--reading-the-metrics-table)
    - [Column-by-column](#column-by-column)
    - [FLAGS reference](#flags-reference)
    - [Special report lines](#special-report-lines)
    - [Maintainer-change / re-adoption detection](#maintainer-change--re-adoption-detection)
-8. [AUR scan (`-S`) — malware IOC checks](#aur-scan--s--malware-ioc-checks)
-9. [Install-time warnings (the yay hooks)](#install-time-warnings-the-yay-hooks)
-10. [Background: the Atomic Arch attack](#background-the-atomic-arch-attack)
-11. [Recommended workflows](#recommended-workflows)
-12. [Configuration](#configuration)
-13. [Safety notes & caveats](#safety-notes--caveats)
+9. [AUR scan (`-S`) — malware IOC checks](#aur-scan--s--malware-ioc-checks)
+10. [Install-time warnings (the yay hooks)](#install-time-warnings-the-yay-hooks)
+11. [Background: the Atomic Arch attack](#background-the-atomic-arch-attack)
+12. [Recommended workflows](#recommended-workflows)
+13. [Configuration](#configuration)
+14. [Safety notes & caveats](#safety-notes--caveats)
 
 ---
 
@@ -68,6 +69,73 @@ upgrade. The audit/scan are read-only and never build anything.
 
 The `-A` audit and `-S` scan require **`curl` + `jq`** and an internet connection
 (they query the AUR RPC and fetch the latest malicious-package lists live).
+
+---
+
+## Installation
+
+> Personal layout: this repo lives at `~/src/linux_hacks` and `~/update.sh` is a
+> symlink to `update.sh` here. Adjust the paths if you clone elsewhere.
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/pasadoorian/Linux_Hacks.git ~/src/linux_hacks
+cd ~/src/linux_hacks
+```
+
+### 2. Install dependencies
+
+```bash
+# Core tools (run as root):
+sudo pacman -S --needed git curl jq base-devel rebuild-detector pacman-contrib fwupd
+# yay v13+ — the default AUR updater and what the install-time hooks run on:
+pamac build yay
+```
+
+`rebuild-detector` provides `checkrebuild` (`-r`); `pacman-contrib` provides
+`pacdiff` (`-p`); `base-devel` is needed to build AUR packages. `pacman`,
+`pamac`, `pacman-mirrors`, and `mhwd-kernel` ship with Manjaro.
+
+### 3. Make it runnable
+
+```bash
+chmod +x update.sh aur-precheck.sh
+ln -sf ~/src/linux_hacks/update.sh ~/update.sh   # optional convenience symlink
+```
+
+The script **auto-elevates with sudo**, so run it as your normal user:
+`~/update.sh -h`. The **first run auto-creates** your config at
+`~/.config/update.sh/config` from [`update.conf.example`](update.conf.example);
+edit it to taste (see [Configuration](#configuration)).
+
+### 4. (Optional) Enable the install-time supply-chain hooks
+
+The yay v13 hooks (PKGBUILD build-logic scan + `aur-precheck.sh`) live in
+`yay-init.lua`. Deploy the live copy yay actually reads:
+
+```bash
+mkdir -p ~/.config/yay
+cp yay-init.lua ~/.config/yay/init.lua
+```
+
+The hook finds `aur-precheck.sh` via `$AUR_PRECHECK_BIN`, then `$PATH`, then
+`~/src/linux_hacks/aur-precheck.sh` — so the default clone path just works.
+**Re-run this `cp` whenever `yay-init.lua` changes.**
+
+### 5. (Optional) Run the test suite
+
+```bash
+git submodule update --init --recursive   # fetch vendored bats (first time only)
+./tests/run-tests.sh                       # install shellcheck for full lint coverage
+```
+
+### Updating later
+
+```bash
+cd ~/src/linux_hacks && git pull
+cp yay-init.lua ~/.config/yay/init.lua     # only if the hook changed
+```
 
 ---
 
