@@ -1,6 +1,6 @@
 # Linux Hacks
 
-Bash scripts and guides for Manjaro Linux system administration, maintenance, and security auditing. Designed for personal use on Manjaro/Arch-based systems.
+Bash scripts and guides for Arch-based Linux system administration, maintenance, and security auditing. Designed for personal use on Arch and Manjaro.
 
 ## Scripts
 
@@ -66,8 +66,9 @@ does this automatically).
 
 ## System Requirements
 
-- Manjaro Linux (or Arch-based)
-- Package managers: `pacman`, `pamac`; `yay` v13+ for the default AUR flow and the install-time hooks
+- Arch Linux or an Arch-based distro (Manjaro, EndeavourOS, etc.)
+- `pacman` and `yay` v13+ for the default update flow and install-time hooks
+- `pamac` is optional (stock on Manjaro, `pamac-aur` on Arch) — only needed if you set `SYSTEM_UPDATER`/`AUR_UPDATER` to `pamac`
 - `jq` and `curl` for the AUR audit/scan/precheck
 - Root access for most operations (scripts auto-elevate or warn as needed)
 

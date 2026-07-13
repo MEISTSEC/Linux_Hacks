@@ -210,7 +210,7 @@ usage() {
     cat <<EOF
 Usage: $(basename "$0") [OPTIONS]
 
-Manjaro Linux system update and maintenance script.
+Arch Linux system update and maintenance script (Manjaro-compatible).
 
 Options:
   -c, --clean          Clean package and build caches
@@ -374,8 +374,11 @@ check_foreign_orphans() {
 perform_update() {
     section "Updating packages"
 
-    # Refresh the mirrors list and select the fastest ones
-    run_quiet "Mirrors refreshed" pacman-mirrors -f || true
+    # Refresh the mirrors list and select the fastest ones (Manjaro-only tool;
+    # on Arch, use reflector separately -- this step is skipped if absent)
+    if command -v pacman-mirrors >/dev/null 2>&1; then
+        run_quiet "Mirrors refreshed" pacman-mirrors -f || true
+    fi
 
     # pamac is an all-in-one tool: if it's the AUR updater it also drives the repos
     # (there is no clean "AUR only" pamac mode), so it does both in one pass.
